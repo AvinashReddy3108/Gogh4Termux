@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 tmp_IFS=$IFS
 
+# Turn off cursor.
+setterm -cursor off
+
 # Get themes
 status_code=$(curl -IL https://github.com/AvinashReddy3108/Gogh4Termux 2>/dev/null | head -n 1 | cut -d$' ' -f2)
 if [ "$status_code" -eq "200" ]; then
@@ -38,3 +41,7 @@ if [ $? -eq 0 ]; then
         echo "Failed to download/apply color scheme."
     fi
 fi
+
+# Restore cursor.
+setterm -cursor on
+
