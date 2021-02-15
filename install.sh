@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 tmp_IFS=$IFS
 
+_require () {
+    for pkg in "$@"
+    do
+        command -v $pkg >/dev/null 2>&1 || { echo >&2 "I require '$pkg' but it's not installed. Aborting."; exit 1; }
+    done
+}
+
+_require jq curl dialog
+
 # Get themes
-status_code=$(curl -IL https://github.com/AvinashReddy3108/Gogh4Termux 2>/dev/null | head -n 1 | cut -d$' ' -f2)
+status_code=$(curl -I "https://github.com/AvinashReddy3108/Gogh4Termux" 2>&1 | awk '/HTTP\// {print $2}')
 if [ "$status_code" -eq "200" ]; then
-    themes=$(curl -sL https://github.com/AvinashReddy3108/Gogh4Termux | grep -o "title=.*\.properties\" " | awk -F '=' '{print $2}' | tr -d '"')
+    themes=$(curl -fSsL https://api.github.com/repos/AvinashReddy3108/Gogh4Termux/git/trees/master | jq -r '.tree[] | select (.path | contains(".properties")) | .path')
     IFS=$'\n'
     names=($themes)
     FILES=()
@@ -33,8 +42,10 @@ if [ $? -eq 0 ]; then
         termux-reload-settings
         if [ $? -eq 0 ]; then
             clear
+        else
+            echo "Failed to apply color scheme."
         fi
     else
-        echo "Failed to download/apply color scheme."
+        echo "Failed to download color scheme."
     fi
 fi
